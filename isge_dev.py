@@ -28,11 +28,11 @@ for key, value in v_disp_sizekb_dict.items():
 df = pd.DataFrame({'DNA_size': size_to_frac_dict.keys(),
                    'vertical_pos': size_to_frac_dict.values()})
 
-sns.lineplot(data=df, x='DNA_size', y='vertical_pos')
+sns.lineplot(data=df, x='DNA_size', y='vertical_pos', markers=True,
+             marker='o', linestyle='--', markersize=10, color='blue')
 plt.title("DNA Size vs. Vertical Displacement of 1kb+ ladder")
 plt.xlabel("DNA Size (bp)")
 plt.ylabel("Normalized Vertical Position")
-
 plt.show()
 
 # order dictionary for correct interpolation:

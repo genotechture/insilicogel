@@ -5,6 +5,7 @@
   proportion (1kb+ only)
 - assign samples to howevermany rows of length `row_len`
 - Visualize hypothetical plot
+- Could go downstream of PCR or restriction digestion simulation
 
 ![example multiple rows](26x24.png)
 
