@@ -7,12 +7,23 @@
 - Visualize hypothetical plot
 - Could go downstream of PCR or restriction digestion simulation
 
+## Updates:
+
+### 2025-01-10:
+
+- Tested some visualization alternatives and settled on Plotly.
+- See [here](./plotly_eg.html) 
+- Data generation detailed in `plotly_eg.py`.
+
+## Example static image
+
 ![example multiple rows](26x24.png)
 
 ## Requirements:
 
 - numpy
 - matplotlib
+- plotly
 
 ## shortcomings:
 
