@@ -5,7 +5,7 @@ import plotly.io as pio
 example_dna_bands = {'Sample A': [500, 1000, 5000],
                      'Sample B': [1500, 5000],
                      'Sample C': [6500],
-                     'Sample D': [0], # no band
+                     'Sample D': [0],  # no band
                      'Sample E': [15000],  # size capped at ladder max (10 kbp)
                      'Sample F': [50]}  # size capped at ladder min (100 bp)
 
@@ -17,4 +17,4 @@ gel_json = gel_plotly(samples=example_dna_bands, title='Example gel',
 gel_fig = pio.from_json(gel_json)
 pio.write_html(gel_fig, file='plotly_eg.html', auto_open=True)
 
-# note that band interpolation is confined to the ladder range.
+# Note: band migration interpolation is confined to ladder range

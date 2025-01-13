@@ -7,6 +7,29 @@ import plotly.io as pio
 import plotly.subplots as sp
 
 
+def normalize_dict(in_dict: dict) -> dict:
+    """
+    Normalizes ladder mass values to a 0-1 scale to be used for opacity
+    (alpha).
+
+    Args:
+        in_dict (dict): dictionary of band size keys: mass (ng) values.
+
+    Returns:
+        dict: dictionary of band size keys: normalized mass values.
+    """
+    # prevents ladder minimum mass being zero (if not) after normalization:
+    min_mass = 0
+    max_mass = max(in_dict.values())
+    out_dict = {}
+    for size, mass in in_dict.items():
+        out_dict[size] = round(
+            number=(mass - min_mass) / (max_mass - min_mass),
+            ndigits=2
+            )
+    return out_dict
+
+
 def gel_migrate(x, ladder: str = "1kb+"):
     """
     Convert DNA lengths to migration distances based on the specified ladder.
@@ -22,12 +45,12 @@ def gel_migrate(x, ladder: str = "1kb+"):
         float or list of floats: Normalized vertical position(s).
     """
     if ladder == '1kb+':
-        ladder_dict = {100.0: 0.934, 200.0: 0.84, 300.0: 0.76, 400.0: 0.689,
-                       500.0: 0.629, 600.0: 0.583, 700.0: 0.54, 800.0: 0.5,
-                       900.0: 0.466, 1000.0: 0.437, 1200.0: 0.38,
-                       1500.0: 0.311, 2000.0: 0.231, 3000.0: 0.146,
-                       4000.0: 0.094, 5000.0: 0.069, 6000.0: 0.054,
-                       8000.0: 0.034, 10000.0: 0.02}
+        ladder_dict = {100: 0.934, 200: 0.84, 300: 0.76, 400: 0.689,
+                       500: 0.629, 600: 0.583, 700: 0.54, 800: 0.5,
+                       900: 0.466, 1000: 0.437, 1200: 0.38,
+                       1500: 0.311, 2000: 0.231, 3000: 0.146,
+                       4000: 0.094, 5000: 0.069, 6000: 0.054,
+                       8000: 0.034, 10000: 0.02}
     # elif add other ladder types:
     else:
         raise ValueError(f'ladder type {ladder} unrecognized!.')
@@ -65,12 +88,12 @@ def gel_plot(x: dict[str, list], title: str, ladder: str = '1kb',
         None
     """
     if ladder == '1kb':
-        ladder_dict = {100.0: 0.934, 200.0: 0.84, 300.0: 0.76, 400.0: 0.689,
-                       500.0: 0.629, 600.0: 0.583, 700.0: 0.54, 800.0: 0.5,
-                       900.0: 0.466, 1000.0: 0.437, 1200.0: 0.38,
-                       1500.0: 0.311, 2000.0: 0.231, 3000.0: 0.146,
-                       4000.0: 0.094, 5000.0: 0.069, 6000.0: 0.054,
-                       8000.0: 0.034, 10000.0: 0.02}
+        ladder_dict = {100: 0.934, 200: 0.84, 300: 0.76, 400: 0.689,
+                       500: 0.629, 600: 0.583, 700: 0.54, 800: 0.5,
+                       900: 0.466, 1000: 0.437, 1200: 0.38,
+                       1500: 0.311, 2000: 0.231, 3000: 0.146,
+                       4000: 0.094, 5000: 0.069, 6000: 0.054,
+                       8000: 0.034, 10000: 0.02}
     else:
         raise ValueError(f'Ladder type {ladder} unrecognized!')
 
@@ -178,6 +201,13 @@ def gel_plotly(samples: dict[str, list], title: str = "In-silico gel",
                         1200, 1500, 2000, 3000, 4000, 5000, 6000, 8000, 10000]
         ladder_positions = gel_migrate(x=ladder_sizes, ladder=ladder)
 
+        ladder_mass = {100: 61, 200: 32, 300: 37, 400: 49, 500: 124, 600: 23, 
+                       700: 27, 800: 31, 900: 34, 1000: 122, 1200: 45,
+                       1500: 57, 2000: 40, 3000: 120, 4000: 32, 5000: 40,
+                       6000: 48, 8000: 40, 10000: 40}
+        # normalize mass for ladder band alpha:
+        ladder_mass_norm = normalize_dict(ladder_mass)
+
     # elif space for more ladders:
 
     else:
@@ -207,6 +237,7 @@ def gel_plotly(samples: dict[str, list], title: str = "In-silico gel",
                 y=[band, band],
                 mode='lines',
                 line=dict(color='white', width=3),
+                opacity=ladder_mass_norm[size],
                 text=[f'Ladder {ladder}: {size} bp'] * 2,
                 hoverinfo='none',
                 name=ladder,
@@ -233,7 +264,8 @@ def gel_plotly(samples: dict[str, list], title: str = "In-silico gel",
                     color=color,
                     opacity=0.0
                 ),
-                text=[f'{ladder}: {size} bp'] * len(hover_x),
+                text=[f'{ladder}: {size} bp, '
+                      f'{ladder_mass[size]} ng'] * len(hover_x),
                 hoverinfo='text',
                 showlegend=False
             ),
@@ -256,6 +288,7 @@ def gel_plotly(samples: dict[str, list], title: str = "In-silico gel",
                         y=[band, band],
                         mode='lines',
                         line=dict(color='white', width=3),
+                        opacity=0.7,  # arbitrary, ladder relative
                         text=[f'{size} bp'] * 2,
                         hoverinfo='none',
                         showlegend=False
@@ -268,8 +301,8 @@ def gel_plotly(samples: dict[str, list], title: str = "In-silico gel",
 
                 # invisible ladder trace for informative color hover behavior:
                 hover_x = np.linspace(x_pos - lane_width / 2,
-                                    x_pos + lane_width / 2,
-                                    num=5)
+                                      x_pos + lane_width / 2,
+                                      num=5)
                 hover_y = [band] * len(hover_x)
                 fig.add_trace(
                     go.Scatter(
@@ -305,9 +338,9 @@ def gel_plotly(samples: dict[str, list], title: str = "In-silico gel",
     )
 
     fig.update_layout(
-        margin=dict(t=150),
+        margin=dict(t=150, l=20),
         title=dict(text=title, x=0.5, y=0.95, xanchor='left', yanchor='top'),
-        plot_bgcolor='dimgrey',
+        plot_bgcolor='black',
         xaxis1=dict(
             tickmode='array',
             tickvals=[0],
@@ -329,6 +362,7 @@ def gel_plotly(samples: dict[str, list], title: str = "In-silico gel",
             title='Migration distance',
             ticks='',
             showticklabels=False,
+            ticksuffix='    ',  # reduce spacing?
             showgrid=False,
             zeroline=False,
             autorange='reversed'
